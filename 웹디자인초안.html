@@ -442,18 +442,56 @@
                             <!-- '주요 시설' 컴포넌트 -->
                             <div id="facilities-list-container">
                                 <h3 class="font-bold text-xl mb-4">주요 시설</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                <!-- 검색창 -->
+                                <div class="mb-4 flex space-x-2">
+                                    <input type="text" id="facilities-search-input" placeholder="시설명을 검색하세요 (예: 1공학관, 도서관)" 
+                                           class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button onclick="searchFacilities()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center space-x-2">
+                                        <i data-lucide="search" class="w-5 h-5"></i>
+                                        <span>검색</span>
+                                    </button>
+                                </div>
+                                <!-- 시설 목록 -->
+                                <div id="facilities-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제1학술관" data-keywords="도서관 제1학술관 library">
                                         <p class="font-semibold">도서관 (제1학술관)</p>
                                         <p class="text-sm text-gray-600">열람실 <b>82</b>/200석 (운영 중)</p>
                                     </div>
-                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="학생복지관" data-keywords="학생식당 복지관 편의점 cafeteria">
                                         <p class="font-semibold">학생식당 (복지관 1층)</p>
                                         <p class="text-sm text-gray-600">운영 중 (11:00 ~ 18:00)</p>
                                     </div>
-                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제1공학관" data-keywords="1공학관 제1공학관 기계공학 산업공학">
+                                        <p class="font-semibold">제1공학관</p>
+                                        <p class="text-sm text-gray-600">기계공학과, 산업공학과</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제2공학관" data-keywords="2공학관 제2공학관 건축공학 토목공학">
+                                        <p class="font-semibold">제2공학관</p>
+                                        <p class="text-sm text-gray-600">건축공학과, 토목공학과</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제3공학관" data-keywords="3공학관 제3공학관 화학공학 신소재공학">
+                                        <p class="font-semibold">제3공학관</p>
+                                        <p class="text-sm text-gray-600">화학공학과, 신소재공학과</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제4공학관" data-keywords="4공학관 제4공학관 전기공학 의용생체공학">
+                                        <p class="font-semibold">제4공학관</p>
+                                        <p class="text-sm text-gray-600">전기공학과, 의용생체공학과</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="제5공학관" data-keywords="5공학관 제5공학관 컴퓨터공학 전자공학">
                                         <p class="font-semibold">제5공학관</p>
                                         <p class="text-sm text-gray-600">컴퓨터공학과, 전자공학부</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="학연산클러스터" data-keywords="학연산 클러스터 창업지원센터">
+                                        <p class="font-semibold">학연산클러스터</p>
+                                        <p class="text-sm text-gray-600">창업지원센터, 연구실</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="체육관" data-keywords="체육관 gym 운동시설">
+                                        <p class="font-semibold">체육관</p>
+                                        <p class="text-sm text-gray-600">운동시설, 헬스장 (운영 중)</p>
+                                    </div>
+                                    <div class="facility-item p-3 bg-gray-50 rounded-lg" data-name="기숙사" data-keywords="기숙사 dormitory">
+                                        <p class="font-semibold">학생기숙사</p>
+                                        <p class="text-sm text-gray-600">입주 학생 거주 시설</p>
                                     </div>
                                 </div>
                             </div>
@@ -461,18 +499,48 @@
                             <!-- '실시간 행사' 컴포넌트 -->
                             <div id="event-list-container" class="hidden">
                                 <h3 class="font-bold text-xl mb-4">실시간 행사</h3>
-                                <div class="space-y-3">
-                                    <div class="p-3 bg-blue-50 rounded-lg">
+                                <!-- 검색창 -->
+                                <div class="mb-4 flex space-x-2">
+                                    <input type="text" id="events-search-input" placeholder="행사명을 검색하세요 (예: AI 특강, 동아리)" 
+                                           class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button onclick="searchEvents()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center space-x-2">
+                                        <i data-lucide="search" class="w-5 h-5"></i>
+                                        <span>검색</span>
+                                    </button>
+                                </div>
+                                <!-- 행사 목록 -->
+                                <div id="events-list" class="space-y-3">
+                                    <div class="event-item p-3 bg-blue-50 rounded-lg" data-name="AI 명사 초청 특강" data-keywords="AI 특강 제5공학관 컴퓨터공학">
                                         <p class="font-semibold">AI 명사 초청 특강</p>
                                         <p class="text-sm text-gray-600">제5공학관 101호 / 14:00 ~ 16:00</p>
                                     </div>
-                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="동아리 박람회" data-keywords="동아리 박람회 복지관">
                                         <p class="font-semibold">동아리 박람회</p>
                                         <p class="text-sm text-gray-600">학생복지관 앞 광장 / 11:00 ~ 17:00</p>
                                     </div>
-                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="창업경진대회 설명회" data-keywords="창업 경진대회 학연산클러스터">
                                         <p class="font-semibold">창업경진대회 설명회</p>
                                         <p class="text-sm text-gray-600">학연산클러스터 1층 / 18:00 ~ 19:00</p>
+                                    </div>
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="기계공학 세미나" data-keywords="기계공학 세미나 제1공학관">
+                                        <p class="font-semibold">기계공학 세미나</p>
+                                        <p class="text-sm text-gray-600">제1공학관 201호 / 15:00 ~ 16:30</p>
+                                    </div>
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="건축설계 작품전시" data-keywords="건축 설계 전시 제2공학관">
+                                        <p class="font-semibold">건축설계 작품전시</p>
+                                        <p class="text-sm text-gray-600">제2공학관 1층 로비 / 10:00 ~ 18:00</p>
+                                    </div>
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="화학공학 실험실 투어" data-keywords="화학공학 실험실 제3공학관">
+                                        <p class="font-semibold">화학공학 실험실 투어</p>
+                                        <p class="text-sm text-gray-600">제3공학관 301호 / 13:00 ~ 14:00</p>
+                                    </div>
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="전기공학 학회" data-keywords="전기공학 학회 제4공학관">
+                                        <p class="font-semibold">전기공학 학회</p>
+                                        <p class="text-sm text-gray-600">제4공학관 401호 / 16:00 ~ 17:30</p>
+                                    </div>
+                                    <div class="event-item p-3 bg-gray-50 rounded-lg" data-name="체육관 오픈데이" data-keywords="체육관 오픈데이 운동">
+                                        <p class="font-semibold">체육관 오픈데이</p>
+                                        <p class="text-sm text-gray-600">체육관 / 09:00 ~ 21:00</p>
                                     </div>
                                 </div>
                             </div>
@@ -657,6 +725,114 @@
             }
         }
 
+        // 주요 시설 검색 함수
+        function searchFacilities() {
+            const searchInput = document.getElementById('facilities-search-input');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const facilityItems = document.querySelectorAll('.facility-item');
+
+            if (searchTerm === '') {
+                // 검색어가 없으면 모든 항목 표시
+                facilityItems.forEach(item => {
+                    item.style.display = '';
+                    item.style.backgroundColor = ''; // 원래 배경색으로 복원
+                });
+                // 검색 결과 없음 메시지 제거
+                const noResultsMsg = document.getElementById('no-facilities-results');
+                if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+                return;
+            }
+
+            // 검색어와 일치하는 항목만 표시
+            facilityItems.forEach(item => {
+                const name = item.getAttribute('data-name').toLowerCase();
+                const keywords = item.getAttribute('data-keywords').toLowerCase();
+                const text = item.textContent.toLowerCase();
+
+                if (name.includes(searchTerm) || keywords.includes(searchTerm) || text.includes(searchTerm)) {
+                    item.style.display = '';
+                    // 검색어 강조 표시
+                    item.style.backgroundColor = '#dbeafe'; // 연한 파란색으로 강조
+                } else {
+                    item.style.display = 'none';
+                    item.style.backgroundColor = ''; // 원래 배경색으로 복원
+                }
+            });
+
+            // 검색 결과가 없을 때 메시지 표시
+            const visibleItems = Array.from(facilityItems).filter(item => item.style.display !== 'none');
+            let noResultsMsg = document.getElementById('no-facilities-results');
+            if (visibleItems.length === 0) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'no-facilities-results';
+                    noResultsMsg.className = 'text-center py-8 text-gray-500';
+                    noResultsMsg.innerHTML = '<p>검색 결과가 없습니다.</p><p class="text-sm mt-2">다른 검색어를 시도해보세요.</p>';
+                    document.getElementById('facilities-list').appendChild(noResultsMsg);
+                }
+            } else {
+                if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+            }
+        }
+
+        // 실시간 행사 검색 함수
+        function searchEvents() {
+            const searchInput = document.getElementById('events-search-input');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const eventItems = document.querySelectorAll('.event-item');
+
+            if (searchTerm === '') {
+                // 검색어가 없으면 모든 항목 표시
+                eventItems.forEach(item => {
+                    item.style.display = '';
+                    item.style.backgroundColor = ''; // 원래 배경색으로 복원
+                });
+                // 검색 결과 없음 메시지 제거
+                const noResultsMsg = document.getElementById('no-events-results');
+                if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+                return;
+            }
+
+            // 검색어와 일치하는 항목만 표시
+            eventItems.forEach(item => {
+                const name = item.getAttribute('data-name').toLowerCase();
+                const keywords = item.getAttribute('data-keywords').toLowerCase();
+                const text = item.textContent.toLowerCase();
+
+                if (name.includes(searchTerm) || keywords.includes(searchTerm) || text.includes(searchTerm)) {
+                    item.style.display = '';
+                    // 검색어 강조 표시
+                    item.style.backgroundColor = '#dbeafe'; // 연한 파란색으로 강조
+                } else {
+                    item.style.display = 'none';
+                    item.style.backgroundColor = ''; // 원래 배경색으로 복원
+                }
+            });
+
+            // 검색 결과가 없을 때 메시지 표시
+            const visibleItems = Array.from(eventItems).filter(item => item.style.display !== 'none');
+            let noResultsMsg = document.getElementById('no-events-results');
+            if (visibleItems.length === 0) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'no-events-results';
+                    noResultsMsg.className = 'text-center py-8 text-gray-500';
+                    noResultsMsg.innerHTML = '<p>검색 결과가 없습니다.</p><p class="text-sm mt-2">다른 검색어를 시도해보세요.</p>';
+                    document.getElementById('events-list').appendChild(noResultsMsg);
+                }
+            } else {
+                if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+            }
+        }
+
         // 3. 통화 시뮬레이션 함수 (추가됨)
         function toggleCall(show) {
             const callOverlay = document.getElementById('call-overlay');
@@ -674,11 +850,33 @@
             }
         }
         
-        // 페이지 로드 시 기본 탭 활성화 (주요 시설)
+        // 페이지 로드 시 기본 탭 활성화 및 이벤트 리스너 설정
         document.addEventListener('DOMContentLoaded', () => {
             toggleMapLayer('facilities');
+            
+            // Enter 키로 검색 가능하도록 이벤트 리스너 추가
+            const facilitiesInput = document.getElementById('facilities-search-input');
+            const eventsInput = document.getElementById('events-search-input');
+            
+            if (facilitiesInput) {
+                facilitiesInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchFacilities();
+                    }
+                });
+            }
+            
+            if (eventsInput) {
+                eventsInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchEvents();
+                    }
+                });
+            }
+            
+            // Lucide 아이콘 다시 로드 (검색 버튼 아이콘용)
+            lucide.createIcons();
         });
     </script>
 </body>
 </html>
-
