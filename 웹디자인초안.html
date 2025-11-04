@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HY-Compass (v3.0) - Web</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide 아이콘 로드 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #003c71; /* 한양대 메인 컬러 */
+            --secondary-color: #77a6d4;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f0f2f5;
+        }
+        /* 페이지 기본 레이아웃 */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* 사이드바 활성/비활성 스타일 */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            color: #d1d5db; /* 비활성 텍스트 */
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item:hover {
+            background-color: #1f2937; /* 호버 배경 */
+            color: #ffffff;
+        }
+        .nav-item.active {
+            background-color: var(--secondary-color); /* 활성 배경 */
+            color: #ffffff; /* 활성 텍스트 */
+            font-weight: 600;
+        }
+        /* 공통 카드 스타일 */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.75rem;
+        }
+        
+        /* 챗봇 오버레이 */
+        .chatbot-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 190;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .chatbot-window {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 400px;
+            height: 600px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+            overflow: hidden; /* 통화 오버레이를 위해 추가 */
+        }
+        .chatbot-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        .chatbot-overlay.show .chatbot-window {
+            transform: translateY(0);
+        }
+        .chat-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            margin-bottom: 0.75rem;
+            max-width: 80%;
+            font-size: 0.95rem;
+        }
+        .bot-bubble {
+            background-color: #f3f4f6;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.5rem;
+        }
+        .user-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.5rem;
+        }
+        
+        /* 1. 캠퍼스맵 핀 스타일 */
+        .map-pin {
+            position: absolute;
+            width: 3rem;
+            height: 3rem;
+            background-color: var(--primary-color);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .map-pin i {
+            transform: rotate(45deg);
+            color: white;
+        }
+        .map-pin:hover {
+            transform: rotate(-45deg) scale(1.1);
+        }
+        .pin-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            background-color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            white-space: nowrap;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-pin:hover .pin-tooltip {
+            display: block;
+        }
+
+        /* 3. 통화 시뮬레이션 오버레이 스타일 */
+        .call-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 1000;
+            display: none; /* 기본 숨김 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .call-status {
+            font-size: 1.1rem;
+            color: var(--text-light-color);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- 
+          =====================================
+          사이드 네비게이션 (웹 디자인)
+          =====================================
+        -->
+        <nav class="w-64 bg-gray-900 text-white flex flex-col flex-shrink-0">
+            <!-- 로고 -->
+            <div class="h-16 flex items-center justify-center text-2xl font-bold border-b border-gray-700" style="background-color: var(--primary-color);">
+                HY-Compass
+            </div>
+            <!-- 메뉴 -->
+            <div class="flex-grow p-4 space-y-2">
+                <div id="nav-home-page" class="nav-item active" onclick="goToPage('home-page')">
+                    <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i>
+                    <span>대시보드</span>
+                </div>
+                <div id="nav-academics-page" class="nav-item" onclick="goToPage('academics-page')">
+                    <i data-lucide="graduation-cap" class="mr-3 w-5 h-5"></i>
+                    <span>My 학사 (GPS)</span>
+                </div>
+                <div id="nav-community-page" class="nav-item" onclick="goToPage('community-page')">
+                    <i data-lucide="users" class="mr-3 w-5 h-5"></i>
+                    <span>Connect Hub</span>
+                </div>
+                <div id="nav-campus-page" class="nav-item" onclick="goToPage('campus-page')">
+                    <i data-lucide="map-pin" class="mr-3 w-5 h-5"></i>
+                    <span>캠퍼스</span>
+                </div>
+                <!-- 2. 마이페이지 탭 추가 -->
+                <div id="nav-my-page" class="nav-item" onclick="goToPage('my-page')">
+                    <i data-lucide="settings" class="mr-3 w-5 h-5"></i>
+                    <span>설정 및 마이페이지</span>
+                </div>
+            </div>
+            <!-- 프로필 -->
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex items-center">
+                    <img src="https://placehold.co/40x40/77a6d4/FFF?text=HY" alt="Profile" class="rounded-full">
+                    <div class="ml-3">
+                        <p class="font-semibold">김한양</p>
+                        <p class="text-xs text-gray-400">컴퓨터공학과</p>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 
+          =====================================
+          메인 콘텐츠 영역
+          =====================================
+        -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="p-8">
+                <!-- 
+                  PAGE 1: 홈 (대시보드)
+                -->
+                <section id="home-page" class="page active">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">대시보드</h1>
+                    <div class="card bg-gradient-to-r from-blue-800 to-blue-600 text-white mb-8">
+                        <h2 class="text-2xl font-bold">김한양님, 안녕하세요!</h2>
+                        <p class="mt-2 opacity-90">당신의 성공적인 캠퍼스 라이프를 응원합니다.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="card lg:col-span-2">
+                            <h2 class="card-title"><i data-lucide="graduation-cap" class="mr-2"></i>My Academic GPS</h2>
+                            <p class="text-sm text-gray-600 mb-2">졸업까지 <b>32학점</b> 남았습니다.</p>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 75%"></div>
+                            </div>
+                            <div class="text-right text-sm font-semibold mt-1">98 / 130 학점</div>
+                            <button onclick="goToPage('academics-page')" class="w-full mt-4 text-center bg-blue-50 text-blue-700 font-semibold py-2 rounded-lg">
+                                자세히 보기
+                            </button>
+                        </div>
+                        
+                        <div class="card row-span-2">
+                            <h2 class="card-title"><i data-lucide="map" class="mr-2"></i>Live Campus</h2>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold">오늘의 학식 (학생식당)</p>
+                                    <p class="text-sm text-gray-600">제육덮밥, 치즈돈까스</p>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold">주요 행사</p>
+                                    <p class="text-sm text-gray-600">AI 명사 초청 특강 (제5공학관)</p>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold">도서관 (제1학술관)</p>
+                                    <p class="text-sm text-gray-600">열람실 <b>82</b>/200석</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card lg:col-span-2">
+                            <h2 class="card-title"><i data-lucide="messages-square" class="mr-2"></i>Connect Hub 실시간 인기글</h2>
+                            <div class="space-y-3">
+                                <p class="p-3 bg-gray-50 rounded-lg text-sm truncate cursor-pointer hover:bg-gray-100">컴퓨터네트워크 과목 팀플 구합니다 (3/5)</p>
+                                <p class="p-3 bg-gray-50 rounded-lg text-sm truncate cursor-pointer hover:bg-gray-100">운영체제 강의평가 어떤가요?</p>
+                                <p class="p-3 bg-gray-50 rounded-lg text-sm truncate cursor-pointer hover:bg-gray-100">[Global] 중국인 유학생인데 안산 맛집 추천 좀</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 
+                  PAGE 2: 학사 (졸업사정 로드맵)
+                -->
+                <section id="academics-page" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">My 학사 (GPS)</h1>
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <!-- 좌측: 시각화 -->
+                        <div class="card lg:w-1/3 text-center">
+                            <h2 class="card-title justify-center"><i data-lucide="graduation-cap" class="mr-2"></i>총 졸업 진행률</h2>
+                            <div class="relative w-48 h-48 mx-auto">
+                                <svg class="w-full h-full" viewBox="0 0 36 36">
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                          fill="none" stroke="#e6e6e6" stroke-width="3"/>
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                          fill="none" stroke="#003c71" stroke-width="3"
+                                          stroke-dasharray="75, 100" stroke-linecap="round"/>
+                                </svg>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <span class="text-4xl font-bold text-blue-800">75%</span>
+                                    <span class="block text-lg text-gray-500">98/130</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 우측: 세부 항목 -->
+                        <div class="card lg:w-2/3">
+                            <h2 class="card-title"><i data-lucide="clipboard-check" class="mr-2"></i>필수 이수 요건</h2>
+                            <div>
+                                <div class="border-b">
+                                    <button class="w-full flex justify-between items-center py-4">
+                                        <span class="text-lg font-semibold">전공 핵심 (2/3)</span>
+                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                    </button>
+                                    <div class="pb-3 text-base text-gray-600">
+                                        <p class="flex items-center p-2"><i data-lucide="check" class="w-5 h-5 mr-3 text-green-500"></i> 자료구조 (CSE1001)</p>
+                                        <p class="flex items-center p-2"><i data-lucide="check" class="w-5 h-5 mr-3 text-green-500"></i> 알고리즘 (CSE2001)</p>
+                                        <p class="flex items-center p-2 bg-red-50 rounded-lg"><i data-lucide="x" class="w-5 h-5 mr-3 text-red-500"></i> 운영체제 (CSE3001)</p>
+                                    </div>
+                                </div>
+                                <div class="border-b">
+                                    <button class="w-full flex justify-between items-center py-4">
+                                        <span class="text-lg font-semibold">교양 필수 (4/4)</span>
+                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                 <div class="border-b">
+                                    <button class="w-full flex justify-between items-center py-4">
+                                        <span class="text-lg font-semibold">기초 필수 (3/3)</span>
+                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 
+                  PAGE 3: 커뮤니티 (Connect Hub)
+                -->
+                <section id="community-page" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Connect Hub</h1>
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <!-- 좌측: 카테고리 -->
+                        <div class="card lg:w-1/3">
+                            <h2 class="card-title"><i data-lucide="book-open" class="mr-2"></i>강의평 / 정보</h2>
+                            <div class="relative mb-4">
+                                <input type="text" placeholder="강의명, 교수명 검색..." class="w-full pl-10 pr-4 py-2 border rounded-lg">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <h2 class="card-title"><i data-lucide="messages-square" class="mr-2"></i>게시판</h2>
+                            <div class="space-y-2">
+                                <div class="p-3 bg-blue-50 text-blue-700 rounded-lg cursor-pointer font-semibold">자유게시판</div>
+                                <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">스터디 / 팀플</div>
+                                <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">Global Lounge (AI 번역)</div>
+                                <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">동아리 / 학회</div>
+                            </div>
+                        </div>
+                        <!-- 우측: 게시글 목록 -->
+                        <div class="card lg:w-2/3">
+                            <h2 class="card-title"><i data-lucide="list" class="mr-2"></i>자유게시판</h2>
+                            <div class="space-y-4">
+                                <div class="p-4 border rounded-lg">
+                                    <h3 class="font-semibold text-lg">컴퓨터네트워크 과목 팀플 구합니다 (3/5)</h3>
+                                    <p class="text-gray-600 text-sm mt-1 truncate">저희 팀 백엔드 1명, AI 1명 있습니다. 프론트엔드 2명 구해요!</p>
+                                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                                        <span>익명 (컴퓨터공학과)</span>
+                                        <span><i data-lucide="thumbs-up" class="w-4 h-4 inline"></i> 5 <i data-lucide="message-circle" class="w-4 h-4 inline ml-2"></i> 2</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <h3 class="font-semibold text-lg">운영체제 강의평가 어떤가요?</h3>
+                                    <p class="text-gray-600 text-sm mt-1 truncate">이번에 OOO 교수님 수업 들으려 하는데, 학점 잘 주시는지, 과제는 많은지...</p>
+                                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                                        <span>익명 (전자공학부)</span>
+                                        <span><i data-lucide="thumbs-up" class="w-4 h-4 inline"></i> 12 <i data-lucide="message-circle" class="w-4 h-4 inline ml-2"></i> 8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 
+                  PAGE 4: 캠퍼스 (네비게이터) - * 1. 수정됨 *
+                -->
+                <section id="campus-page" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">캠퍼스 네비게이터</h1>
+                    <div class="card p-0 overflow-hidden">
+                        <!-- 지도 영역: 핀을 올리기 위해 relative 설정 -->
+                        <div class="relative">
+                            <!-- 캠퍼스맵 이미지 -->
+                            <img src="캠퍼스맵.png" alt="ERICA 캠퍼스맵" class="w-full h-auto object-cover">
+                            <!-- 
+                                '실시간 행사' 핀 컨테이너
+                                - 기본적으로 숨겨져 있음 (hidden)
+                                - '실시간 행사' 버튼 클릭 시 'hidden'이 제거됨
+                            -->
+                            <div id="map-pins-container" class="absolute top-0 left-0 w-full h-full hidden">
+                                <!-- 예시 핀 1: 제5공학관 -->
+                                <div class="map-pin" style="top: 35%; left: 60%;">
+                                    <i data-lucide="code"></i>
+                                    <span class="pin-tooltip">AI 명사 초청 특강</span>
+                                </div>
+                                <!-- 예시 핀 2: 학생복지관 -->
+                                <div class="map-pin" style="top: 25%; left: 30%;">
+                                    <i data-lucide="megaphone"></i>
+                                    <span class="pin-tooltip">동아리 박람회</span>
+                                </div>
+                                <!-- 예시 핀 3: 학연산클러스터 -->
+                                <div class="map-pin" style="top: 55%; left: 75%;">
+                                    <i data-lucide="briefcase"></i>
+                                    <span class="pin-tooltip">창업경진대회</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- 버튼 그룹 -->
+                            <div class="flex space-x-4 mb-6">
+                                <button id="facilities-btn" onclick="toggleMapLayer('facilities')" class="flex-1 bg-blue-50 text-blue-700 py-3 rounded-lg text-base font-semibold">
+                                    주요 시설
+                                </button>
+                                <button id="events-btn" onclick="toggleMapLayer('events')" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg text-base font-semibold">
+                                    실시간 행사
+                                </button>
+                            </div>
+                            
+                            <!-- '주요 시설' 컴포넌트 -->
+                            <div id="facilities-list-container">
+                                <h3 class="font-bold text-xl mb-4">주요 시설</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <p class="font-semibold">도서관 (제1학술관)</p>
+                                        <p class="text-sm text-gray-600">열람실 <b>82</b>/200석 (운영 중)</p>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <p class="font-semibold">학생식당 (복지관 1층)</p>
+                                        <p class="text-sm text-gray-600">운영 중 (11:00 ~ 18:00)</p>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <p class="font-semibold">제5공학관</p>
+                                        <p class="text-sm text-gray-600">컴퓨터공학과, 전자공학부</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- '실시간 행사' 컴포넌트 -->
+                            <div id="event-list-container" class="hidden">
+                                <h3 class="font-bold text-xl mb-4">실시간 행사</h3>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-blue-50 rounded-lg">
+                                        <p class="font-semibold">AI 명사 초청 특강</p>
+                                        <p class="text-sm text-gray-600">제5공학관 101호 / 14:00 ~ 16:00</p>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <p class="font-semibold">동아리 박람회</p>
+                                        <p class="text-sm text-gray-600">학생복지관 앞 광장 / 11:00 ~ 17:00</p>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <p class="font-semibold">창업경진대회 설명회</p>
+                                        <p class="text-sm text-gray-600">학연산클러스터 1층 / 18:00 ~ 19:00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 
+                  PAGE 5: 설정 및 마이페이지 (2. 추가됨)
+                -->
+                <section id="my-page" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">설정 및 마이페이지</h1>
+                    
+                    <div class="card mb-6">
+                        <h2 class="card-title"><i data-lucide="user" class="mr-2"></i>내 정보</h2>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/80x80/77a6d4/FFF?text=HY" alt="Profile" class="rounded-full">
+                            <div class="ml-6">
+                                <p class="text-2xl font-semibold">김한양</p>
+                                <p class="text-gray-600">컴퓨터공학과 / 2022000123</p>
+                                <button class="mt-2 text-sm text-blue-600 hover:underline">프로필 수정</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="card-title"><i data-lucide="settings" class="mr-2"></i>시스템 설정</h2>
+                        
+                        <h3 class="font-semibold text-lg mb-3">언어 설정 (Language)</h3>
+                        <div class="flex space-x-2">
+                            <button class="flex-1 bg-blue-50 text-blue-700 py-2 rounded-lg font-semibold">한국어</button>
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold">English</button>
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold">中文</button>
+                        </div>
+
+                        <h3 class="font-semibold text-lg mt-6 mb-3">알림 설정</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="noti1" class="font-medium">학사 일정 알림</label>
+                                <input type="checkbox" id="noti1" class="form-checkbox h-5 w-5 text-blue-600" checked>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="noti2" class="font-medium">커뮤니티 키워드 알림</label>
+                                <input type="checkbox" id="noti2" class="form-checkbox h-5 w-5 text-blue-600">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- 
+      =====================================
+      챗봇 (플로팅 버튼 및 오버레이)
+      =====================================
+    -->
+    <div onclick="toggleChatbot(true)" class="fixed bottom-8 right-8 w-16 h-16 bg-blue-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-blue-800 transition-all z-100">
+        <i data-lucide="message-circle" class="text-white w-8 h-8"></i>
+    </div>
+
+    <div id="chatbot-overlay" class="chatbot-overlay" onclick="toggleChatbot(false)">
+        <div class="chatbot-window" onclick="event.stopPropagation()">
+            <!-- 챗봇 헤더 (3. 수정됨) -->
+            <header class="h-16 flex items-center justify-between p-4 flex-shrink-0" style="background-color: var(--primary-color);">
+                <h1 class="text-xl font-bold text-white">AI 캠퍼스 비서</h1>
+                <div class="flex space-x-3">
+                    <!-- 음성봇 통화 버튼 -->
+                    <i id="start-call-btn" data-lucide="phone" class="cursor-pointer text-white" onclick="toggleCall(true)"></i>
+                    <i data-lucide="x" class="cursor-pointer text-white" onclick="toggleChatbot(false)"></i>
+                </div>
+            </header>
+
+            <!-- 챗봇 대화창 -->
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col space-y-2">
+                <div class="chat-bubble bot-bubble">
+                    안녕하세요! 무엇을 도와드릴까요?<br>
+                    (예: "도서관 운영시간 알려줘", "증명서 발급 방법")
+                </div>
+                <div class="chat-bubble user-bubble">
+                    도서관 언제까지 열어?
+                </div>
+                <div class="chat-bubble bot-bubble">
+                    제1학술관(도서관)은 평일 기준 22:00까지 운영됩니다.
+                </div>
+            </div>
+            
+            <!-- 챗봇 입력창 -->
+            <div class="p-4 border-t flex items-center space-x-2 bg-white">
+                <input type="text" placeholder="메시지를 입력하세요..." class="flex-1 border rounded-full px-4 py-2">
+                <button class="bg-blue-600 text-white p-3 rounded-full">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- 3. 통화 시뮬레이션 오버레이 (추가됨) -->
+            <div id="call-overlay" class="call-overlay">
+                <i data-lucide="user-check" class="w-24 h-24 text-blue-700 mb-6"></i>
+                <h2 class="text-2xl font-bold mb-2">AI 상담원</h2>
+                <p id="call-status-text" class="text-lg text-gray-600 call-status">연결 중...</p>
+                
+                <button id="end-call-btn" onclick="toggleCall(false)" class="mt-12 bg-red-500 text-white font-semibold py-3 px-6 rounded-full flex items-center space-x-2">
+                    <i data-lucide="phone-off" class="w-5 h-5"></i>
+                    <span>통화 종료</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Lucide 아이콘 로드
+        lucide.createIcons();
+
+        // 현재 페이지 상태 관리
+        let currentPage = 'home-page';
+
+        // 페이지 전환 함수
+        function goToPage(pageId) {
+            // 모든 페이지 숨기기
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 모든 탭 비활성화
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+
+            // 요청된 페이지만 보이기
+            document.getElementById(pageId).classList.add('active');
+
+            // 요청된 탭만 활성화
+            document.getElementById('nav-' + pageId).classList.add('active');
+            
+            currentPage = pageId;
+        }
+
+        // 챗봇 오버레이 토글 함수
+        function toggleChatbot(show) {
+            const chatbotOverlay = document.getElementById('chatbot-overlay');
+            if (show) {
+                chatbotOverlay.classList.add('show');
+            } else {
+                chatbotOverlay.classList.remove('show');
+                toggleCall(false); // 챗봇 창 닫을 때 통화 오버레이도 강제로 닫기
+            }
+        }
+
+        // 1. 캠퍼스맵 토글 함수 (추가됨)
+        function toggleMapLayer(layerName) {
+            const facilitiesBtn = document.getElementById('facilities-btn');
+            const eventsBtn = document.getElementById('events-btn');
+            const facilitiesList = document.getElementById('facilities-list-container');
+            const eventList = document.getElementById('event-list-container');
+            const mapPins = document.getElementById('map-pins-container');
+
+            if (layerName === 'events') {
+                // 행사 버튼 활성화
+                eventsBtn.classList.add('bg-blue-50', 'text-blue-700');
+                eventsBtn.classList.remove('bg-gray-100', 'text-gray-700');
+                // 시설 버튼 비활성화
+                facilitiesBtn.classList.add('bg-gray-100', 'text-gray-700');
+                facilitiesBtn.classList.remove('bg-blue-50', 'text-blue-700');
+                
+                // 컨텐츠 교체
+                facilitiesList.classList.add('hidden');
+                eventList.classList.remove('hidden');
+                mapPins.classList.remove('hidden');
+            } else { // 'facilities'
+                // 시설 버튼 활성화
+                facilitiesBtn.classList.add('bg-blue-50', 'text-blue-700');
+                facilitiesBtn.classList.remove('bg-gray-100', 'text-gray-700');
+                // 행사 버튼 비활성화
+                eventsBtn.classList.add('bg-gray-100', 'text-gray-700');
+                eventsBtn.classList.remove('bg-blue-50', 'text-blue-700');
+                
+                // 컨텐츠 교체
+                facilitiesList.classList.remove('hidden');
+                eventList.classList.add('hidden');
+                mapPins.classList.add('hidden');
+            }
+        }
+
+        // 3. 통화 시뮬레이션 함수 (추가됨)
+        function toggleCall(show) {
+            const callOverlay = document.getElementById('call-overlay');
+            const callStatusText = document.getElementById('call-status-text');
+            
+            if (show) {
+                callOverlay.style.display = 'flex';
+                // 연결 중... 텍스트를 2초 후에 '통화 중'으로 변경하는 시뮬레이션
+                callStatusText.innerText = "연결 중...";
+                setTimeout(() => {
+                    callStatusText.innerText = "통화 중 (00:01)";
+                }, 2000);
+            } else {
+                callOverlay.style.display = 'none';
+            }
+        }
+        
+        // 페이지 로드 시 기본 탭 활성화 (주요 시설)
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleMapLayer('facilities');
+        });
+    </script>
+</body>
+</html>
+
